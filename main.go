@@ -18,16 +18,18 @@ package main
 
 import (
 	"flag"
-	"os"
-
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
+	"os"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
+	//"deviceplugin-taints-controller/api/v1"
+	"deviceplugin-taints-controller/api/v1"
 	"deviceplugin-taints-controller/controllers"
+	batchv1 "k8s.io/api/batch/v1"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -40,6 +42,7 @@ func init() {
 	_ = clientgoscheme.AddToScheme(scheme)
 
 	_ = corev1.AddToScheme(scheme)
+	_ = batchv1.AddToScheme(scheme)
 	// +kubebuilder:scaffold:scheme
 }
 
@@ -66,6 +69,7 @@ func main() {
 		os.Exit(1)
 	}
 
+	setupLog.Info("Setting up controller")
 	if err = (&controllers.NodeReconciler{
 		Client: mgr.GetClient(),
 		Log:    ctrl.Log.WithName("controllers").WithName("Node"),
@@ -75,6 +79,13 @@ func main() {
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder
+
+	go v1.WebhookMain()
+	//setupLog.Info("setting up webhook server")
+	//hookServer := mgr.GetWebhookServer()
+	//
+	//setupLog.Info("registering webhooks to the webhook server")
+	//hookServer.Register("/mutate-v1-pod", &webhook.Admission{Handler: &podAnnotator{Client: mgr.GetClient()}})
 
 	setupLog.Info("starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
