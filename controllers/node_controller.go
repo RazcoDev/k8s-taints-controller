@@ -52,12 +52,12 @@ func (r *NodeReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 
 	taintKey := os.Getenv("TAINT_KEY")
-	if labelValue == "" {
+	if taintKey == "" {
 		return ctrl.Result{}, fmt.Errorf("TAINT_KEY environment variable is missing")
 	}
 
 	taintValue := os.Getenv("TAINT_VALUE")
-	if labelValue == "" {
+	if taintValue == "" {
 		return ctrl.Result{}, fmt.Errorf("TAINT_VALUE environment variable is missing")
 	}
 	ctx := context.Background()

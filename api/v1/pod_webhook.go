@@ -3,17 +3,17 @@ package v1
 import (
 	"crypto/tls"
 	"encoding/json"
-	"flag"
 	"fmt"
-	"io/ioutil"
-	"net/http"
-
 	"github.com/mattbaird/jsonpatch"
+	"github.com/prometheus/common/log"
+	"io/ioutil"
 	"k8s.io/api/admission/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/util/sets"
+	"net/http"
+	"os"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/klog"
@@ -177,9 +177,23 @@ func serveERT(w http.ResponseWriter, r *http.Request) {
 
 func WebhookMain() {
 	var config Config
-	flag.StringVar(&config.CertFile, "tlsCertFile", "certs/cert.pem", "File containing the x509 Certificate for HTTPS.")
-	flag.StringVar(&config.KeyFile, "tlsKeyFile", "certs/key.pem", "File containing the x509 private key to --tlsCertFile.")
-	flag.Parse()
+	tls_cert := os.Getenv("TLS_CERT")
+	if tls_cert == "" {
+		log.Info("No TLS_CERT env variable")
+		os.Exit(1)
+	}
+	tls_key := os.Getenv("TLS_KEY")
+	if tls_key == "" {
+		log.Info("No TLS_KEY env variable")
+		os.Exit(1)
+	}
+	//
+	//flag.StringVar(&config.CertFile, "tlsCertFile", "certs/cert.pem", "File containing the x509 Certificate for HTTPS.")
+	//flag.StringVar(&config.KeyFile, "tlsKeyFile", "certs/key.pem", "File containing the x509 private key to --tlsCertFile.")
+
+	//flag.Parse()
+	config.CertFile = tls_cert
+	config.KeyFile = tls_key
 	klog.InitFlags(nil)
 
 	http.HandleFunc("/apply-ert", serveERT)
