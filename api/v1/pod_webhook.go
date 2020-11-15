@@ -197,7 +197,7 @@ func WebhookMain() {
 	http.HandleFunc("/apply-ert", serveERT)
 
 	server := &http.Server{
-		Addr:      ":443",
+		Addr:      "0.0.0.0:443",
 		TLSConfig: configTLS(config),
 	}
 	klog.Info(fmt.Sprintf("About to start serving webhooks: %#v", server))
